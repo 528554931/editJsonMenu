@@ -8,7 +8,7 @@
  */
 
 import React, { useState } from 'react';
-import { Space, Table, Button, Upload, Tag, Popconfirm } from 'antd';
+import { Space, Table, Button, Upload, Tag, Popconfirm, Modal } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { UploadProps } from 'antd';
@@ -80,6 +80,10 @@ const confirm = (_: React.MouseEvent<HTMLElement>, record: routerOptions) => {
 
 };
 
+const addRouter = (record: routerOptions) => {
+
+}
+
 const columns: ColumnsType<routerOptions> = [
   {
     title: 'title',
@@ -106,7 +110,7 @@ const columns: ColumnsType<routerOptions> = [
     key: 'action',
     render: (_, record) => (
       <Space size="middle">
-        {record.meta.isMenu === 'true' && <a>新增</a>}
+        {record.meta.isMenu === 'true' && <a onClick={() => addRouter(record)} >新增</a>}
         <a>编辑</a>
         <Popconfirm
           title="确定要删除吗？"
@@ -143,7 +147,6 @@ const props: UploadProps = {
       originData = JSON.parse(e.target?.result as string) as routerOptions[]
       SYSTEMID = findParent(originData)
 
-
       const result = toTree(originData, SYSTEMID)
       setTableData(result)
 
@@ -158,8 +161,28 @@ const props: UploadProps = {
 
 const Upfile = () => {
   return <Upload {...props}>
-    <Button icon={<UploadOutlined />}>点击上传JSON</Button>
+    <Button type="primary" icon={<UploadOutlined />}>点击上传JSON</Button>
   </Upload>
+}
+
+type ModelRCType = {
+}
+const ModelRC = (props: ModelRCType) => {
+  const [isModalOpen, setIsModalOpen] = useState(false)
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
+  return <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+
+  </Modal>
 }
 
 const App: React.FC = () => {
