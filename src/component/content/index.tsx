@@ -8,12 +8,11 @@
  */
 
 import React, { useState } from 'react';
-import { Space, Table, Button, message, Upload, Tag, Popconfirm } from 'antd';
+import { Space, Table, Button, Upload, Tag, Popconfirm } from 'antd';
 import { UploadOutlined } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { UploadProps } from 'antd';
 import cloneDeep from 'lodash/cloneDeep'
-
 interface metaOptions {
   title: string;
   icon: string | null;
@@ -38,11 +37,13 @@ let setTableData: React.Dispatch<React.SetStateAction<routerOptions[]>>
 
 type fucToTree = (router: routerOptions[], parentId: string) => routerOptions[]
 
-// const SYSTEMID = "05395ecdee02408d9ef1114185b736d4" // 系统id
 
 let originData: routerOptions[]
+let SYSTEMID: string
 
 const toTree: fucToTree = (router, parentId) => {
+  router = cloneDeep(router)
+
   const parentIdMap = new Map<idType, routerOptions>();
 
   router.forEach((item) => {
@@ -69,18 +70,14 @@ const toTree: fucToTree = (router, parentId) => {
   return result.filter((item) => item.parentId === parentId);
 };
 
-const confirm = (e: React.MouseEvent<HTMLElement>, record: routerOptions) => {
-  console.log(e);
+const confirm = (_: React.MouseEvent<HTMLElement>, record: routerOptions) => {
+
   originData = originData.filter(item => item.path !== record.path)
-  const router = toTree(originData, originData[0].parentId)
+
+  const router = toTree(originData, SYSTEMID)
+
   setTableData(router)
 
-
-};
-
-const cancel = (e?: React.MouseEvent<HTMLElement>) => {
-  // console.log(e);
-  // message.error('Click on No');
 };
 
 const columns: ColumnsType<routerOptions> = [
@@ -92,7 +89,7 @@ const columns: ColumnsType<routerOptions> = [
     },
   },
   {
-    title: '是否菜单',
+    title: '类型',
     dataIndex: 'meta.isMenu',
     render(_, record) {
       return record.meta.isMenu === 'true' ? <Tag color="success">菜单页面</Tag> : <Tag color="error">子路由</Tag>
@@ -113,11 +110,9 @@ const columns: ColumnsType<routerOptions> = [
         <a>编辑</a>
         <Popconfirm
           title="确定要删除吗？"
-          description="删除后，子菜单和路由都展示在第一层"
           onConfirm={(e) => confirm(e!, record)}
-          onCancel={cancel}
-          okText="Yes"
-          cancelText="No"
+          okText="确认"
+          cancelText="取消"
         >
           <a>删除</a>
         </Popconfirm>
@@ -126,6 +121,14 @@ const columns: ColumnsType<routerOptions> = [
     ),
   },
 ];
+
+const findParent = (router: routerOptions[]): string => {
+  const ids = router.map(item => item.id)
+  const parents = router.map(item => item.parentId)
+  const sysID = parents.find(item => !ids.includes(item))
+
+  return sysID!
+}
 
 const data: routerOptions[] = [];
 
@@ -138,8 +141,10 @@ const props: UploadProps = {
     const reader = new FileReader()
     reader.onload = (e) => {
       originData = JSON.parse(e.target?.result as string) as routerOptions[]
+      SYSTEMID = findParent(originData)
 
-      const result = toTree(originData, originData[0].parentId)
+
+      const result = toTree(originData, SYSTEMID)
       setTableData(result)
 
     }
@@ -152,7 +157,6 @@ const props: UploadProps = {
 }
 
 const Upfile = () => {
-  console.log('Upfile-render');
   return <Upload {...props}>
     <Button icon={<UploadOutlined />}>点击上传JSON</Button>
   </Upload>
@@ -161,7 +165,6 @@ const Upfile = () => {
 const App: React.FC = () => {
   const [tableData, setData] = useState(data)
   setTableData = setData
-  console.log('App-render');
 
   return <>
     <Upfile />
