@@ -6,63 +6,102 @@
  * @Description: 
  * @Author: JinXueJun
  */
-import { Button, Checkbox, Form, Input } from 'antd';
-import { forwardRef, useImperativeHandle } from 'react';
+import { sotreRootType } from '@/store';
+import { idType, metaOptions, routerOptions } from '@/types/router';
+import { findSystemId, toTree } from '@/utils';
+import { TreeSelect, Form, Input } from 'antd';
+import { forwardRef, useImperativeHandle, useReducer, useState } from 'react';
+import { useSelector } from 'react-redux';
 
-interface ChildRef {
-  onFinishFailed: (errorInfo: any) => void;
+export interface ChildRef {
+  getTreeData: (data: routerOptions[]) => void
+}
+interface initFormType {
+  id?: idType;
+  parentId: string;
+  path: string;
+  name: string;
+  redirect: string | null;
+  component: string;
+  children?: routerOptions[];
+  meta?: metaOptions;
+}
+interface actionType {
+  type: string,
 }
 
-const App =forwardRef<ChildRef>((_,ref) =>{
+const initForm: initFormType = {
+  id: 0,
+  parentId: '',
+  path: '',
+  name: '',
+  redirect: '',
+  component: '',
+
+}
+
+const reducer = (state: initFormType, action: actionType) => {
+  return state
+}
+
+const App = forwardRef<ChildRef>((_, ref) => {
+
+  const [routerForm, Dispatch] = useReducer(reducer, initForm)
+  const originData = useSelector<sotreRootType>(state => state.routerReducer.originRouter) as routerOptions[]
+
+  const tree = originData.filter(item => item.meta.isMenu === 'true')
+
+  const SYSTEMID = findSystemId(tree)
+  const treeData = toTree(tree, SYSTEMID)
 
   const onFinish = (values: any) => {
     console.log('Success:', values);
   };
-  
-  const onFinishFailed = (errorInfo: any) => {
-    console.log('Failed:', errorInfo);
-  };
 
-  useImperativeHandle(ref, ()=>({
-    onFinishFailed
+  const getTreeData = (data: routerOptions[]) => {
+    // setTreeData(data)
+  }
+
+  const onChange = () => { }
+
+  const generateLabel = (data: routerOptions): string => {
+    return `${data.meta.title}`
+  }
+
+  useImperativeHandle(ref, () => ({
+    getTreeData
   }))
 
   return <Form
-  name="basic"
-  labelCol={{ span: 8 }}
-  wrapperCol={{ span: 16 }}
-  style={{ maxWidth: 600 }}
-  initialValues={{ remember: true }}
-  onFinish={onFinish}
-  onFinishFailed={onFinishFailed}
-  autoComplete="off"
->
-  <Form.Item
-    label="Username"
-    name="username"
-    rules={[{ required: true, message: 'Please input your username!' }]}
+    name="basic"
+    labelCol={{ span: 4 }}
+    wrapperCol={{ span: 19 }}
+    initialValues={{ remember: true }}
+    onFinish={onFinish}
+    autoComplete="off"
   >
-    <Input />
-  </Form.Item>
-
-  <Form.Item
-    label="Password"
-    name="password"
-    rules={[{ required: true, message: 'Please input your password!' }]}
-  >
-    <Input.Password />
-  </Form.Item>
-
-  <Form.Item name="remember" valuePropName="checked" wrapperCol={{ offset: 8, span: 16 }}>
-    <Checkbox>Remember me</Checkbox>
-  </Form.Item>
-
-  <Form.Item wrapperCol={{ offset: 8, span: 16 }}>
-    <Button type="primary" htmlType="submit">
-      Submit
-    </Button>
-  </Form.Item>
-</Form>
-}) 
+    <Form.Item
+      label="上级菜单"
+      name="username"
+    >
+      <TreeSelect
+        showSearch
+        style={{ width: '100%' }}
+        value={routerForm.parentId}
+        fieldNames={{
+          label: 'meta.title',
+          value: 'id',
+          children: 'children'
+        }}
+        dropdownStyle={{ maxHeight: 500, overflow: 'auto' }}
+        placeholder="Please select"
+        allowClear
+        treeDefaultExpandAll
+        onChange={onChange}
+        treeData={treeData}
+      />
+    </Form.Item>
+  </Form>
+})
 
 export default App;

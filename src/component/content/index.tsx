@@ -7,48 +7,54 @@
  * @Author: JinXueJun
  */
 
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Space, Table, Tag, Popconfirm, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { routerOptions} from '@/types/router';
+import type { routerOptions } from '@/types/router';
 import Upfile from '@/component/Upfile';
 import { useDispatch, useSelector } from 'react-redux';
-import {sotreRootType } from '@/store';
+import { sotreRootType } from '@/store';
 import { findSystemId, toTree } from '@/utils';
 import { AnyAction, Dispatch } from '@reduxjs/toolkit';
 import { updateOriginRouter } from '@/store/routerSlice';
 import { updateTable } from '@/store/tableData';
-import RouterForm from '@/component/RouterForm';
+import RouterForm, { ChildRef } from '@/component/RouterForm';
+import { actionTypes } from '@/store/actionTypes';
 
 
 interface modelRCType {
-  content:  JSX.Element
+  content: JSX.Element,
+  ok: () => void
 }
 
 
-let originData:routerOptions[]
+let originData: routerOptions[]
 
-let setTableData: Dispatch<AnyAction>
+let setTableData: Dispatch<actionTypes>
 
-let ModalOpen:React.Dispatch<React.SetStateAction<boolean>>
+let ModalOpen: React.Dispatch<React.SetStateAction<boolean>>
+
+let eForm: React.RefObject<ChildRef>
 
 
 const confirm = (_: React.MouseEvent<HTMLElement>, record: routerOptions) => {
 
   const newOriginData = originData.filter(item => item.path !== record.path)
-  
- const SYSTEMID = findSystemId(newOriginData)
+
+  const SYSTEMID = findSystemId(newOriginData)
   const router = toTree(newOriginData, SYSTEMID)
 
   setTableData(updateOriginRouter(newOriginData))
   setTableData(updateTable(router))
+  originData = newOriginData
 
 };
 
 const addRouter = (record: routerOptions) => {
-  console.log(record);
+
   ModalOpen(true)
-  
+
+
 }
 
 const columns: ColumnsType<routerOptions> = [
@@ -94,36 +100,51 @@ const columns: ColumnsType<routerOptions> = [
 ];
 
 
-const handleOk = () => {
-  ModalOpen(false);
-};
+
+
+
+
+
 
 
 const ModelRC: React.FC<modelRCType> = (props) => {
-  const {content} = props
+  const { content, ok } = props
   const [isModalOpen, setIsModalOpen] = useState(false)
-  ModalOpen =setIsModalOpen
+  ModalOpen = setIsModalOpen
 
   const handleCancel = () => {
-    setIsModalOpen(false);
+    ModalOpen(false);
   };
-  console.log(content);
-  
-  return <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+  const handleOk = () => {
+    ok()
+  }
+
+  return <Modal width={900} title="菜单" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
     {content}
   </Modal>
 }
 
 
 const App: React.FC = () => {
+
   const tabledata = useSelector<sotreRootType>(state => state.tableDataReducer.tableData) as routerOptions[]
   originData = useSelector<sotreRootType>(state => state.routerReducer.originRouter) as routerOptions[]
+  setTableData = useDispatch()
 
-  setTableData =useDispatch()
+  eForm = useRef<ChildRef>(null)
+  const ok = useCallback(() => {
+    return new Promise((res, rej) => {
+
+    })
+  }, [])
+
+
+  console.log('render');
+
   return <>
     <Upfile />
     <Table rowKey="path" columns={columns} dataSource={tabledata} />
-    <ModelRC content={<RouterForm/>} />
+    <ModelRC content={<RouterForm ref={eForm} />} ok={ok} />
   </>
 
 };
