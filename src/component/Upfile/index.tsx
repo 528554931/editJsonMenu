@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-11 11:04:07
  * @LastEditors: JinXueJun && jinxuejun@wondersgroup.com
- * @LastEditTime: 2023-07-11 14:40:11
+ * @LastEditTime: 2023-07-11 14:46:13
  * @FilePath: \editJsonMenu\src\component\Upfile\index.tsx
  * @Description: 
  * @Author: JinXueJun
@@ -18,7 +18,9 @@ import { updateTable } from '@/store/tableData';
 import { findSystemId, toTree } from '@/utils';
 
 let SYSTEMID: string
+
 let setTableData: Dispatch<AnyAction>
+
 const props: UploadProps = {
   showUploadList: false,
   name: 'file',
