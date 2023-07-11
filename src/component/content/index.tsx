@@ -1,87 +1,49 @@
 /*
  * @Date: 2023-07-10 16:04:39
  * @LastEditors: JinXueJun && jinxuejun@wondersgroup.com
- * @LastEditTime: 2023-07-10 17:25:40
+ * @LastEditTime: 2023-07-11 14:45:14
  * @FilePath: \editJsonMenu\src\component\content\index.tsx
  * @Description: 
  * @Author: JinXueJun
  */
 
 import React, { useState } from 'react';
-import { Space, Table, Button, Upload, Tag, Popconfirm, Modal } from 'antd';
-import { UploadOutlined } from '@ant-design/icons';
+import { Space, Table, Tag, Popconfirm, Modal } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
-import type { UploadProps } from 'antd';
-import cloneDeep from 'lodash/cloneDeep'
-interface metaOptions {
-  title: string;
-  icon: string | null;
-  isMenu: string;
-  noLink: string | null;
+import type { routerOptions} from '@/types/router';
+import Upfile from '@/component/Upfile';
+import { useSelector } from 'react-redux';
+import {sotreRootType } from '@/store';
+import { findSystemId, toTree } from '@/utils';
+import { AnyAction, Dispatch } from '@reduxjs/toolkit';
+import { updateOriginRouter } from '@/store/routerSlice';
+import { updateTable } from '@/store/tableData';
+
+
+interface modelRCType {
+  content:  JSX.Element
 }
 
-type idType = string | number;
 
-interface routerOptions {
-  id?: idType;
-  parentId: string;
-  path: string;
-  name: string;
-  redirect: string | null;
-  component: string;
-  children?: routerOptions[];
-  meta: metaOptions;
-}
+let originData:routerOptions[]
 
-let setTableData: React.Dispatch<React.SetStateAction<routerOptions[]>>
+let setTableData: Dispatch<AnyAction>
 
-type fucToTree = (router: routerOptions[], parentId: string) => routerOptions[]
-
-
-let originData: routerOptions[]
-let SYSTEMID: string
-
-const toTree: fucToTree = (router, parentId) => {
-  router = cloneDeep(router)
-
-  const parentIdMap = new Map<idType, routerOptions>();
-
-  router.forEach((item) => {
-    parentIdMap.set(item.id!, item);
-  });
-
-  const result: routerOptions[] = [];
-
-  router.forEach((item) => {
-    const parent = parentIdMap.get(item.parentId);
-
-    if (parent) {
-      if (!Array.isArray(parent.children)) {
-        parent.children = [];
-      }
-
-      parent.children.push(item);
-    } else {
-      item.parentId = parentId
-      result.push(item);
-    }
-  });
-
-  return result.filter((item) => item.parentId === parentId);
-};
 
 const confirm = (_: React.MouseEvent<HTMLElement>, record: routerOptions) => {
 
-  originData = originData.filter(item => item.path !== record.path)
-
+  const newOriginData = originData.filter(item => item.path !== record.path)
+ const SYSTEMID = findSystemId(newOriginData)
   const router = toTree(originData, SYSTEMID)
 
-  setTableData(router)
+  setTableData(updateOriginRouter(newOriginData))
+  setTableData(updateTable(router))
 
 };
 
 const addRouter = (record: routerOptions) => {
-
+  console.log(record);
+  
 }
 
 const columns: ColumnsType<routerOptions> = [
@@ -126,48 +88,10 @@ const columns: ColumnsType<routerOptions> = [
   },
 ];
 
-const findParent = (router: routerOptions[]): string => {
-  const ids = router.map(item => item.id)
-  const parents = router.map(item => item.parentId)
-  const sysID = parents.find(item => !ids.includes(item))
 
-  return sysID!
-}
 
-const data: routerOptions[] = [];
-
-const props: UploadProps = {
-  showUploadList: false,
-  name: 'file',
-  accept: '.json',
-  beforeUpload(file) {
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      originData = JSON.parse(e.target?.result as string) as routerOptions[]
-      SYSTEMID = findParent(originData)
-
-      const result = toTree(originData, SYSTEMID)
-      setTableData(result)
-
-    }
-    reader.readAsText(file)
-
-  },
-  customRequest() {
-    return
-  }
-}
-
-const Upfile = () => {
-  return <Upload {...props}>
-    <Button type="primary" icon={<UploadOutlined />}>点击上传JSON</Button>
-  </Upload>
-}
-
-type ModelRCType = {
-}
-const ModelRC = (props: ModelRCType) => {
+const ModelRC: React.FC<modelRCType> = (props) => {
+  const {content} = props
   const [isModalOpen, setIsModalOpen] = useState(false)
   const showModal = () => {
     setIsModalOpen(true);
@@ -181,17 +105,23 @@ const ModelRC = (props: ModelRCType) => {
     setIsModalOpen(false);
   };
   return <Modal title="Basic Modal" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-
+    {content}
   </Modal>
 }
 
-const App: React.FC = () => {
-  const [tableData, setData] = useState(data)
-  setTableData = setData
+const RouterForm =() =>{
+  return <></>
+}
 
+const App: React.FC = () => {
+  const tabledata = useSelector<sotreRootType>(state => state.tableDataReducer.tableData) as routerOptions[]
+  originData = useSelector<sotreRootType>(state => state.routerReducer.originRouter) as routerOptions[]
+
+  
   return <>
     <Upfile />
-    <Table rowKey="path" columns={columns} dataSource={tableData} />
+    <Table rowKey="path" columns={columns} dataSource={tabledata} />
+    <ModelRC content={<RouterForm/>} />
   </>
 
 };
