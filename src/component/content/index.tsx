@@ -1,20 +1,20 @@
 /*
  * @Date: 2023-07-10 16:04:39
  * @LastEditors: JinXueJun && jinxuejun@wondersgroup.com
- * @LastEditTime: 2023-07-12 16:09:57
+ * @LastEditTime: 2023-07-19 15:49:53
  * @FilePath: \editJsonMenu\src\component\content\index.tsx
  * @Description: 
  * @Author: JinXueJun
  */
 
-import React, {  useState } from 'react';
+import React, {  useRef, useState } from 'react';
 import { Table, Modal, Popconfirm, Space, Tag } from 'antd';
 import { ColumnsType } from "antd/es/table"
 import type { routerOptions } from '@/types/router';
 import Upfile from '@/component/Upfile';
 import { useDispatch, useSelector } from 'react-redux';
 import { sotreRootType } from '@/store';
-import RouterForm from '@/component/RouterForm';
+import RouterForm, { ChildRef } from '@/component/RouterForm';
 
 import { useTableOfContents } from './contentLogic';
 
@@ -28,6 +28,8 @@ const App: React.FC = () => {
  const [isModalOpen, setIsModalOpen] = useState(false)
 
  const {addRouter,confirm} = useTableOfContents(originData,setTableData,setIsModalOpen)
+
+ const formRef = useRef<ChildRef>(null)
 
  const columns: ColumnsType<routerOptions> = [
   {
@@ -93,7 +95,9 @@ const handleCancel = () => {
   setIsModalOpen(false);
 };
 const handleOk = () => {
-  setIsModalOpen(false);
+  // setIsModalOpen(false);
+  formRef.current?.onFinish()
+ 
 }
 
 
@@ -102,7 +106,7 @@ const handleOk = () => {
     <Upfile />
     <Table rowKey="path" columns={columns} dataSource={tabledata} />
     <Modal width={900} title="菜单" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
-    <RouterForm  />
+    <RouterForm  ref={formRef} />
   </Modal>
   </>
 
