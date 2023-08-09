@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-11 15:07:52
  * @LastEditors: JinXueJun && jinxuejun@wondersgroup.com
- * @LastEditTime: 2023-07-19 17:33:18
+ * @LastEditTime: 2023-07-20 18:03:16
  * @FilePath: \editJsonMenu\src\component\RouterForm\index.tsx
  * @Description:
  * @Author: JinXueJun
@@ -116,11 +116,11 @@ const customDropdown = (menu) => {
 
 const App = forwardRef<ChildRef>((_, ref) => {
   const [routerForm, formDispatch] = useReducer(reducer, initForm);
-  const originData = useSelector<sotreRootType>(
+  const originData = useSelector<sotreRootType, routerOptions[]>(
     (state) => state.routerReducer.originRouter
-  ) as routerOptions[];
+  );
 
-  const [form] = Form.useForm()
+  const [form] = Form.useForm<initFormType>()
 
 
   const tree = originData.filter(

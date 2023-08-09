@@ -1,7 +1,7 @@
 /*
  * @Date: 2023-07-10 16:04:39
  * @LastEditors: JinXueJun && jinxuejun@wondersgroup.com
- * @LastEditTime: 2023-07-19 15:49:53
+ * @LastEditTime: 2023-07-21 14:11:01
  * @FilePath: \editJsonMenu\src\component\content\index.tsx
  * @Description: 
  * @Author: JinXueJun
@@ -21,8 +21,8 @@ import { useTableOfContents } from './contentLogic';
 
 const App: React.FC = () => {
 
-  const tabledata = useSelector<sotreRootType>(state => state.tableDataReducer.tableData) as routerOptions[]
- const originData = useSelector<sotreRootType>(state => state.routerReducer.originRouter) as routerOptions[]
+  const tabledata = useSelector<sotreRootType, routerOptions[]>(state => state.tableDataReducer.tableData)
+ const originData = useSelector<sotreRootType, routerOptions[]>(state => state.routerReducer.originRouter)
  const setTableData = useDispatch()
  
  const [isModalOpen, setIsModalOpen] = useState(false)
